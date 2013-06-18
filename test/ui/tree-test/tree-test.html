@@ -1,0 +1,98 @@
+<html>
+    <script src="../../../montage.js" data-package="../.."></script>
+    <script type="text/montage-serialization">
+        {
+            "owner": {
+                "prototype": "ui/tree-test/tree-test"
+            },
+            "treeController": {
+                "prototype": "montage/core/tree-controller",
+                "bindings": {
+                    "content": {"<->": "@owner.content"}
+                }
+            },
+            "tree": {
+                "prototype": "montage/ui/tree.reel",
+                "properties": {
+                    "element": {"#": "tree"},
+                    "controller": {"@": "treeController"}
+                }
+            },
+            "expanded": {
+                "prototype": "ui/tree-test/checkbox",
+                "properties": {
+                    "element": {"#": "expanded"}
+                },
+                "bindings": {
+                    "checked": {
+                        "<->": "@tree.objectAtCurrentIteration.expanded"
+                    },
+                    "!checked": {
+                        "<-": "!disabled"
+                    },
+                    "disabled": {
+                        "<-": "@tree.objectAtCurrentIteration.children.length == 0"
+                    }
+                }
+            },
+            "label": {
+                "prototype": "ui/tree-test/text-field",
+                "properties": {
+                    "hasTemplate": false,
+                    "element": {"#": "label"}
+                },
+                "bindings": {
+                    "value": {
+                        "<->": "@tree.objectAtCurrentIteration.content.label",
+                        "converter": {"@": "stringConverter"}
+                    }
+                }
+            },
+            "addChildButton": {
+                "prototype": "ui/tree-test/button",
+                "properties": {
+                    "element": {"#": "addChildButton"}
+                },
+                "bindings": {
+                    "node": {"<-": "@tree.objectAtCurrentIteration"}
+                },
+                "listeners": [
+                    {"type": "action", "listener": {"@": "owner"}}
+                ]
+            },
+            "removeNodeButton": {
+                "prototype": "ui/tree-test/button",
+                "properties": {
+                    "element": {"#": "removeNodeButton"}
+                },
+                "bindings": {
+                    "node": {"<-": "@tree.objectAtCurrentIteration"}
+                },
+                "listeners": [
+                    {"type": "action", "listener": {"@": "owner"}}
+                ]
+            },
+            "swapButton": {
+                "prototype": "ui/tree-test/button",
+                "properties": {
+                    "element": {"#": "swapButton"}
+                },
+                "listeners": [
+                    {"type": "action", "listener": {"@": "owner"}}
+                ]
+            },
+            "stringConverter": {
+                "prototype": "ui/tree-test/tree-test[StringConverter]"
+            }
+        }
+    </script>
+    <body>
+        <button data-montage-id="swapButton">Swap Trees</button>
+        <div data-montage-id="tree">
+            <input type="checkbox" data-montage-id="expanded">
+            <input data-montage-id="label">
+            <button data-montage-id="addChildButton">+</button>
+            <button data-montage-id="removeNodeButton">-</button>
+        </div>
+    </body>
+</html>

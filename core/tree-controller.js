@@ -1,5 +1,6 @@
 
 var Montage = require("core/core").Montage;
+var Map = require("collections/map");
 
 // A tree controller is a view-model that tracks whether each node in a
 // corresponding data-model is expanded or collapsed.  It also produces a
@@ -10,10 +11,10 @@ var Montage = require("core/core").Montage;
 // Bind a root node from the data model to a tree controller and bind the tree
 // controller's iterations to a content controller for a repetition.
 
-var Iteration = Montage.specialize( {
+var Iteration = Montage.specialize({
 
     constructor: {
-        value: function () {
+        value: function TreeControllerIteration() {
             this.depth = null;
             this.node = null;
             this.content = null;
@@ -34,12 +35,13 @@ var Iteration = Montage.specialize( {
 
 });
 
-var Node = exports.TreeController = Montage.specialize( {
+var Node = exports.TreeControllerNode = Montage.specialize({
 
     constructor: {
-        value: function () {
+        value: function TreeControllerNode(content) {
+            this.super();
 
-            this.content = null;
+            this.content = content;
             this.parent = null;
             this.expanded = false;
             this.childrenPath = null;
@@ -50,13 +52,10 @@ var Node = exports.TreeController = Montage.specialize( {
             this.iterations = [];
 
             // childrenPath -> children
-            this.defineBinding("children.rangeContent()", {"<-": "content.path(childrenPath)"});
+            this.defineBinding("children.rangeContent()", {"<-": "content.path(childrenPath ?? 'children')"});
 
             // children -> childNodes
             this.children.addRangeChangeListener(this, "children");
-
-            // childNodes + expanded -> length
-            this.defineBinding("length", {"<-": "1 + (expanded ? childNodes.sum{length} : 0)"});
 
             // childNodes -> childIterations
             this.defineBinding("childIterations.rangeContent()", {
@@ -67,7 +66,7 @@ var Node = exports.TreeController = Montage.specialize( {
             this.childIterations.addRangeChangeListener(this, "childIterations");
 
             // iteration + indentedChildIterations -> iterations
-            this.iteration = new Iteration().initWithNodeAndDepth(this, 0);
+            this.iteration = new this.Iteration().initWithNodeAndDepth(this, 0);
             this.defineBinding("iterations.rangeContent()", {
                 "<-": "[[iteration], indentedChildIterations].flatten()"
             });
@@ -90,7 +89,7 @@ var Node = exports.TreeController = Montage.specialize( {
                 index,
                 minus.length,
                 plus.map(function (child) {
-                    return new Node().init(
+                    return new this.constructor().init(
                         child,
                         this.childrenPath,
                         this
@@ -117,6 +116,49 @@ var Node = exports.TreeController = Montage.specialize( {
 
     Iteration: {
         value: Iteration
+    }
+
+});
+
+exports.TreeController = Montage.specialize({
+
+    content: {
+        value: null
+    },
+
+    iterations: {
+        value: null
+    },
+
+    root: {
+        value: null
+    },
+
+    roots: {
+        value: null
+    },
+
+    constructor: {
+        value: function TreeController() {
+            this.super();
+            this.roots = new WeakMap();
+            this.addOwnPropertyChangeListener("content", this);
+            this.iterations = [];
+            this.defineBinding("iterations.rangeContent()", {"<-": "root.iterations"});
+        }
+    },
+
+    handleContentChange: {
+        value: function (content) {
+            if (!this.roots.has(content)) {
+                this.roots.set(content, new this.Node(content));
+            }
+            this.root = this.roots.get(content);
+        }
+    },
+
+    Node: {
+        value: Node
     }
 
 });
