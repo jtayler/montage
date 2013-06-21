@@ -9,6 +9,15 @@ function Node(label, children) {
 
 exports.TreeTest = Component.specialize({
 
+    ascii: {
+        value: {
+            final: " ^-",
+            medial: " +-",
+            before: " | ",
+            beyond: "   "
+        }
+    },
+
     constructor: {
         value: function TreeTest() {
             this.super();

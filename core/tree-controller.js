@@ -13,29 +13,6 @@ var Map = require("collections/map");
 
 var Node = exports.TreeControllerNode = Montage.specialize({
 
-    MEDIAL: {value: {
-        ascii: " +-",
-        up: true,
-        down: true,
-        right: true
-    }},
-
-    FINAL: {value: {
-        ascii: " ^-",
-        up: true,
-        right: true
-    }},
-
-    BEFORE: {value: {
-        ascii: " | ",
-        up: true,
-        down: true
-    }},
-
-    BEYOND: {value: {
-        ascii: "   "
-    }},
-
     constructor: {
         value: function TreeControllerNode() {
             this.super();
@@ -46,8 +23,10 @@ var Node = exports.TreeControllerNode = Montage.specialize({
             this.childrenPath = null;
             this.childNodes = [];
 
-            // depth
             this.defineBinding("depth", {"<-": "(parent.depth + 1) ?? 0"});
+            this.defineBinding("index", {"<-": "entry.0"});
+            this.defineBinding("initial", {"<-": "index == 0"});
+            this.defineBinding("final", {"<-": "index == parent.children.length - 1"});
 
             // childrenPath -> children
             this.defineBinding("children", {
@@ -74,13 +53,11 @@ var Node = exports.TreeControllerNode = Montage.specialize({
             });
 
             // line art hints
-            this.defineBinding("parentIndex", {"<-": "entry.0"});
-            this.defineBinding("last", {"<-": "parentIndex == parent.children.length - 1"});
             this.defineBinding("junction", {
-                "<-": "last ? FINAL : MEDIAL"
+                "<-": "final ? 'final' : 'medial'"
             });
             this.defineBinding("followingJunction", {
-                "<-": "last ? BEYOND : BEFORE"
+                "<-": "final ? 'beyond' : 'before'"
             });
             this.defineBinding("followingJunctions", {
                 "<-": "(parent.followingJunctions ?? []).concat([followingJunction])"
@@ -144,8 +121,7 @@ exports.TreeController = Montage.specialize({
             this.super();
             this.roots = new WeakMap();
             this.addOwnPropertyChangeListener("content", this);
-            this.iterations = [];
-            this.defineBinding("iterations.rangeContent()", {"<-": "root.iterations"});
+            this.defineBinding("iterations", {"<-": "root.iterations"});
         }
     },
 

@@ -4,6 +4,15 @@ var SortedSet = require("montage/collections/sorted-set");
 
 exports.SplayTest = Component.specialize({
 
+    ascii: {
+        value: {
+            final: " ^-",
+            medial: " +-",
+            before: " | ",
+            beyond: "   "
+        }
+    },
+
     constructor: {
         value: function SplayTest() {
             this.super();
