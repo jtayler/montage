@@ -1,5 +1,5 @@
 
-var Component = require("ui/component").Component;
+var Component = require("montage/ui/component").Component;
 
 exports.Indent = Component.specialize({
 

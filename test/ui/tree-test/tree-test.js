@@ -12,7 +12,11 @@ exports.TreeTest = Component.specialize({
     constructor: {
         value: function TreeTest() {
             this.super();
-            this.content = new Node();
+            this.content = new Node("A");
+            this.content.children = [
+                new Node("B"),
+                new Node("C")
+            ];
             this.otherContent = new Node();
         }
     },
@@ -21,7 +25,7 @@ exports.TreeTest = Component.specialize({
         value: function (event) {
             var node = event.target.node;
             node.expanded = true;
-            node.content.children.push(new Node());
+            node.content.children.push(new Node(""));
             console.log(JSON.stringify(this.content, null, 2));
         }
     },
@@ -31,9 +35,7 @@ exports.TreeTest = Component.specialize({
             var node = event.target.node;
             if (!node.parent)
                 return;
-            var child = node.content;
-            var parent = node.parent.content;
-            parent.children.delete(child);
+            node.parent.content.children.delete(node.content);
             console.log(JSON.stringify(this.content, null, 2));
         }
     },

@@ -11,111 +11,112 @@ var Map = require("collections/map");
 // Bind a root node from the data model to a tree controller and bind the tree
 // controller's iterations to a content controller for a repetition.
 
-var Iteration = Montage.specialize({
-
-    constructor: {
-        value: function TreeControllerIteration() {
-            this.depth = null;
-            this.node = null;
-            this.content = null;
-            this.defineBinding("content", {"<->": "node.content"});
-            this.defineBinding("expanded", {"<->": "node.expanded"});
-            this.defineBinding("parent", {"<-": "node.parent"});
-            this.defineBinding("children", {"<-": "node.children"});
-        }
-    },
-
-    initWithNodeAndDepth: {
-        value: function (node, depth) {
-            this.depth = depth;
-            this.node = node;
-            return this;
-        }
-    }
-
-});
-
 var Node = exports.TreeControllerNode = Montage.specialize({
 
+    MEDIAL: {value: {
+        ascii: " +-",
+        up: true,
+        down: true,
+        right: true
+    }},
+
+    FINAL: {value: {
+        ascii: " ^-",
+        up: true,
+        right: true
+    }},
+
+    BEFORE: {value: {
+        ascii: " | ",
+        up: true,
+        down: true
+    }},
+
+    BEYOND: {value: {
+        ascii: "   "
+    }},
+
     constructor: {
-        value: function TreeControllerNode(content) {
+        value: function TreeControllerNode() {
             this.super();
 
-            this.content = content;
+            this.content = null;
+            this.expanded = true;
             this.parent = null;
-            this.expanded = false;
             this.childrenPath = null;
-            this.children = [];
             this.childNodes = [];
-            this.childIterations = [];
-            this.indentedChildIterations = [];
-            this.iterations = [];
+
+            // depth
+            this.defineBinding("depth", {"<-": "(parent.depth + 1) ?? 0"});
 
             // childrenPath -> children
-            this.defineBinding("children.rangeContent()", {"<-": "content.path(childrenPath ?? 'children')"});
+            this.defineBinding("children", {
+                "<-": "content.path(childrenPath ?? 'children')"
+            });
 
-            // children -> childNodes
-            this.children.addRangeChangeListener(this, "children");
+            // children -> childEntries
+            this.defineBinding("childEntries", {
+                "<-": "children.enumerate()"
+            });
 
-            // childNodes -> childIterations
-            this.defineBinding("childIterations.rangeContent()", {
+            // childEntries -> childNodes
+            this.handleChildEntriesRangeChange(this.childEntries, [], 0);
+            this.childEntries.addRangeChangeListener(this, "childEntries");
+
+            // childNodes -> expansion
+            this.defineBinding("expansion", {
                 "<-": "expanded ? childNodes.flatten{iterations} : []"
             });
 
-            // childIterations -> indentedChildIterations
-            this.childIterations.addRangeChangeListener(this, "childIterations");
+            // this + expansion -> iterations
+            this.defineBinding("iterations", {
+                "<-": "[this].concat(expansion)"
+            });
 
-            // iteration + indentedChildIterations -> iterations
-            this.iteration = new this.Iteration().initWithNodeAndDepth(this, 0);
-            this.defineBinding("iterations.rangeContent()", {
-                "<-": "[[iteration], indentedChildIterations].flatten()"
+            // line art hints
+            this.defineBinding("parentIndex", {"<-": "entry.0"});
+            this.defineBinding("last", {"<-": "parentIndex == parent.children.length - 1"});
+            this.defineBinding("junction", {
+                "<-": "last ? FINAL : MEDIAL"
+            });
+            this.defineBinding("followingJunction", {
+                "<-": "last ? BEYOND : BEFORE"
+            });
+            this.defineBinding("followingJunctions", {
+                "<-": "(parent.followingJunctions ?? []).concat([followingJunction])"
+            });
+            this.defineBinding("junctions", {
+                "<-": "(parent.followingJunctions ?? []).concat([junction])"
             });
 
         }
     },
 
     init: {
-        value: function (content, childrenPath, parent) {
+        value: function (content, childrenPath, parent, entry) {
             this.parent = parent || null;
             this.content = content;
             this.childrenPath = childrenPath;
+            this.entry = entry || [0, this];
             return this;
         }
     },
 
-    handleChildrenRangeChange: {
+    handleChildEntriesRangeChange: {
         value: function (plus, minus, index) {
             this.childNodes.swap(
                 index,
                 minus.length,
-                plus.map(function (child) {
+                plus.map(function (entry) {
                     return new this.constructor().init(
-                        child,
+                        entry[1],
                         this.childrenPath,
-                        this
+                        this,
+                        entry
                     );
                 }, this)
             );
         }
-    },
-
-    handleChildIterationsRangeChange: {
-        value: function (plus, minus, index) {
-            this.indentedChildIterations.swap(
-                index,
-                minus.length,
-                plus.map(function (iteration) {
-                    return new this.Iteration().initWithNodeAndDepth(
-                        iteration.node,
-                        iteration.depth + 1
-                    );
-                }, this)
-            );
-        }
-    },
-
-    Iteration: {
-        value: Iteration
     }
 
 });
@@ -151,7 +152,10 @@ exports.TreeController = Montage.specialize({
     handleContentChange: {
         value: function (content) {
             if (!this.roots.has(content)) {
-                this.roots.set(content, new this.Node(content));
+                this.roots.set(
+                    content,
+                    new this.Node().init(content, this.childrenPath)
+                );
             }
             this.root = this.roots.get(content);
         }

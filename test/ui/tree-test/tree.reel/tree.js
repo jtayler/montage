@@ -1,7 +1,7 @@
 
-var Component = require("ui/component").Component;
+var Component = require("montage/ui/component").Component;
 
-var Observers = require("frb/observers");
+var Observers = require("montage/frb/observers");
 var observeProperty = Observers.observeProperty;
 var autoCancelPrevious = Observers.autoCancelPrevious;
 

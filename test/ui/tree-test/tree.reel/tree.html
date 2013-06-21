@@ -5,32 +5,23 @@
         <script type="text/montage-serialization">
         {
             "owner": {
-                "prototype": "ui/tree.reel",
+                "prototype": "ui/tree-test/tree.reel",
                 "properties": {
                     "repetition": {"@": "repetition"},
                     "element": {"#": "tree"}
                 }
             },
             "repetition": {
-                "prototype": "ui/repetition.reel",
+                "prototype": "montage/ui/repetition.reel",
                 "properties": {
                     "element": {"#": "repetition"},
                     "contentController": {"@": "repetitionController"}
                 }
             },
             "repetitionController": {
-                "prototype": "core/range-controller",
+                "prototype": "montage/core/range-controller",
                 "bindings": {
                     "content": {"<-": "@owner.controller.iterations"}
-                }
-            },
-            "row": {
-                "prototype": "ui/tree.reel/indent",
-                "properties": {
-                    "element": {"#": "row"}
-                },
-                "bindings": {
-                    "depth": {"<-": "@repetition.contentAtCurrentIteration.depth"}
                 }
             }
         }</script>
@@ -38,9 +29,7 @@
     <body>
         <div data-montage-id="tree">
             <div data-montage-id="repetition" class="Tree-repetition">
-                <div data-montage-id="row" class="Tree-repetition-row">
-                    <div data-param="*"></div>
-                </div>
+                <div data-param="*"></div>
             </div>
         </div>
     </body>
