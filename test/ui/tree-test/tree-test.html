@@ -32,17 +32,18 @@
             "expanded": {
                 "prototype": "ui/tree-test/checkbox",
                 "properties": {
-                    "element": {"#": "expanded"}
+                    "element": {"#": "expanded"},
+                    "checked": true
                 },
                 "bindings": {
                     "checked": {
                         "<->": "@treeEditor.contentAtCurrentIteration.expanded"
                     },
                     "!checked": {
-                        "<-": "disabled"
+                        "<-": "!enabled"
                     },
-                    "disabled": {
-                        "<-": "@treeEditor.contentAtCurrentIteration.children.length == 0"
+                    "enabled": {
+                        "<-": "@treeEditor.contentAtCurrentIteration.children.length != 0"
                     }
                 }
             },
