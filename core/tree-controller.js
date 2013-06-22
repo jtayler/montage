@@ -1,6 +1,7 @@
 
 var Montage = require("core/core").Montage;
 var Map = require("collections/map");
+var WeakMap = require("collections/weak-map");
 
 // A tree controller is a view-model that tracks whether each node in a
 // corresponding data-model is expanded or collapsed.  It also produces a
